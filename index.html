@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TeamFlow — إدارة فريق الجامعة</title>
+<style>
+  :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--white:#ffffff}
+  html,body{height:100%;margin:0;font-family:Tahoma, Arial, "Noto Naskh Arabic", sans-serif;background:#071027;color:var(--muted)}
+  .container{max-width:1100px;margin:28px auto;padding:18px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#075985,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  h1{color:var(--white);margin:0;font-size:18px}
+  .userBox{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;display:flex;gap:10px;align-items:center}
+  .userName{font-weight:600;color:#e6f7fb}
+  .roleBadge{font-size:12px;color:var(--bg);background:var(--accent);padding:4px 8px;border-radius:8px}
+  main{display:grid;grid-template-columns:1fr 360px;gap:18px}
+  .panel{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
+  .panel h2{margin:0 0 8px;color:var(--white)}
+  .suggestion-list{display:flex;flex-direction:column;gap:10px}
+  .card{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+  .card h3{margin:0;color:#fff;font-size:15px}
+  .meta{font-size:12px;color:var(--muted);margin-top:6px}
+  .right{display:flex;gap:8px;align-items:center}
+  .btn{background:var(--accent);color:var(--bg);border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.04)}
+  .small{padding:6px 8px;font-size:13px}
+  #addSuggestionBtn{width:100%;margin-top:10px}
+  /* modal */
+  .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:50}
+  .modalCard{width:420px;background:#071a2b;padding:16px;border-radius:10px}
+  .field{display:flex;flex-direction:column;margin-bottom:10px}
+  label{color:var(--muted);font-size:13px;margin-bottom:6px}
+  input[type="datetime-local"],input[type="text"],textarea,select{padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--white);outline:none}
+  textarea{min-height:80px;resize:vertical}
+  .row{display:flex;gap:8px}
+  /* notifications */
+  #notificationContainer{position:fixed;right:18px;top:18px;z-index:80;display:flex;flex-direction:column;gap:10px}
+  .notification{background:#072b34;color:#e6f7fb;padding:10px 12px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+  .notification.error{background:#4b0f0f}
+  footer{margin-top:18px;color:var(--muted);font-size:13px}
+  @media(max-width:900px){main{grid-template-columns:1fr} .modalCard{width:92%}}
+</style>
+</head>
+<body>
+<div id="notificationContainer"></div>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="logo">TF</div>
+      <div>
+        <h1>TeamFlow — فريق كرة القدم الذكي (جامعة غرداية)</h1>
+        <div style="color:var(--muted);font-size:13px">نظام اقتراح مواعيد، تصويت، وتفاعل داخلي</div>
+      </div>
+    </div>
+
+    <div class="userBox">
+      <div>
+        <div id="userName" class="userName">جاري تحميل المستخدم...</div>
+        <div style="font-size:12px;color:var(--muted)" id="userEmail"></div>
+      </div>
+      <div style="width:10px"></div>
+      <div id="userRole" class="roleBadge">—</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>اقتراحات مواعيد المباريات</h2>
+      <div id="matchSuggestions" class="suggestion-list">
+        <!-- الاقتراحات تُعرض هنا -->
+      </div>
+
+      <button id="addSuggestionBtn" class="btn" title="إضافة اقتراح">➕ إضافة اقتراح مباراة</button>
+
+      <footer>
+        <small>جميع المستخدمين يجب أن يملكوا حساب مؤسسي @univ-ghardaia.edu.dz</small>
+      </footer>
+    </section>
+
+    <aside class="panel">
+      <h2>العمليات السريعة</h2>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+        <button id="attendMatchBtn" class="btn ghost small">سجل حضوري للمباراة القادمة</button>
+        <button id="refreshBtn" class="btn small">🔁 تحديث الاقتراحات</button>
+        <div style="height:6px"></div>
+        <div style="color:var(--muted);font-size:13px">الرابط إلى API (مخفي ضمن الكود)</div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- Modal إضافة اقتراح -->
+<div id="suggestionModal" class="modal" style="display:none">
+  <div class="modalCard">
+    <h3 style="color:var(--white);margin:0 0 8px">إضافة اقتراح مباراة</h3>
+
+    <div class="field">
+      <label>التاريخ والوقت</label>
+      <input id="suggestionDate" type="datetime-local" />
+    </div>
+
+    <div class="field">
+      <label>المكان</label>
+      <input id="suggestionLocation" type="text" placeholder="مثال: ملعب الجامعة" />
+    </div>
+
+    <div class="field">
+      <label>ملاحظة (اختياري)</label>
+      <textarea id="suggestionNotes" placeholder="ملاحظات..."></textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="cancelSuggestionBtn" class="btn ghost">إلغاء</button>
+      <button id="saveSuggestionBtn" class="btn">إرسال الاقتراح</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== ضع هنا رابط Web App الذي نشرته ========== */
+const WEB_APP_URL = "https://script.google.com/a/macros/univ-ghardaia.edu.dz/s/AKfycbyGrYW3zkut7a79G903DMXKPJ3LBZNI74t8W2lY2YSz0_1r25Fl7STOmuMKLkZrcZBUbQ/exec";
+
+/* حالة بسيطة للتطبيق */
+let app = { currentUser: null };
+
+/* مساعدة إظهار إشعارات */
+function showNotification(msg, type='ok'){
+  const c = document.getElementById('notificationContainer');
+  const n = document.createElement('div');
+  n.className = 'notification' + (type==='error' ? ' error' : '');
+  n.textContent = msg;
+  c.appendChild(n);
+  setTimeout(()=> n.remove(), 3500);
+}
+
+/* دالة عامة للاتصال بالـ API */
+async function callAPI(action, params = {}) {
+  const url = new URL(WEB_APP_URL);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => { if (v !== undefined && v !== null) url.searchParams.set(k, v); });
+
+  try {
+    const r = await fetch(url.toString(), { method: 'GET', credentials: 'include' });
+    if (!r.ok) throw new Error('Network response not ok: ' + r.status);
+    const data = await r.json();
+    return data;
+  } catch (err) {
+    console.error('API error', err);
+    showNotification('خطأ في الاتصال بالخادم', 'error');
+    return null;
+  }
+}
+
+/* جلب المستخدم الحالي */
+async function loadCurrentUser(){
+  const res = await callAPI('getUser');
+  if (!res) return;
+  if (!res.ok) {
+    showNotification(res.error || 'غير مسموح بالدخول', 'error');
+    return;
+  }
+  app.currentUser = res.user;
+  document.getElementById('userName').textContent = res.user.name || res.user.email;
+  document.getElementById('userEmail').textContent = res.user.email;
+  document.getElementById('userRole').textContent = (res.user.role || 'PLAYER');
+  // إظهار تبويب الإدارة إن كان ORGANIZER
+  if(res.user.role === 'ORGANIZER') document.getElementById('userRole').style.display = 'inline-block';
+  loadMatchSuggestions();
+}
+
+/* جلب وعرض الاقتراحات */
+async function loadMatchSuggestions(){
+  const res = await callAPI('getSuggestions');
+  const container = document.getElementById('matchSuggestions');
+  container.innerHTML = '';
+  if(!res || !res.suggestions || res.suggestions.length === 0){
+    container.innerHTML = '<div class="card"><div class="meta">لا توجد اقتراحات حالياً</div></div>';
+    return;
+  }
+
+  // ترتيب حسب createdAt (الأحدث أولاً) إن وُجد حقل createdAt
+  const list = res.suggestions.slice().sort((a,b)=>{
+    const ta = new Date(a.matchDateISO||a.createdAt||0).getTime();
+    const tb = new Date(b.matchDateISO||b.createdAt||0).getTime();
+    return ta - tb;
+  });
+
+  list.forEach(s=>{
+    const voters = s.voters ? (s.voters.split(',').filter(Boolean)) : [];
+    const voted = voters.includes(app.currentUser.email);
+    const dateStr = s.matchDateISO ? new Date(s.matchDateISO).toLocaleString('ar-DZ') : 'تاريخ غير محدد';
+
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="max-width:70%">
+          <h3>${s.location || 'موقع غير معرّف'}</h3>
+          <div class="meta">${dateStr} • ${s.notes ? s.notes : ''}</div>
+          <div class="meta">مقترح من: ${s.proposerId}</div>
+        </div>
+        <div class="right">
+          <button class="btn small" data-id="${s.id}" style="background:${voted? '#28a745' : ''}">${voted? '✔ مصوّت' : '👍 صوت'} (${s.votesCount||0})</button>
+        </div>
+      </div>
+    `;
+    // رابط التصويت
+    el.querySelector('button').addEventListener('click', async (ev)=>{
+      const btn = ev.currentTarget;
+      btn.disabled = true;
+      const sid = btn.getAttribute('data-id');
+      const r = await callAPI('voteSuggestion', { id: sid });
+      if (r && r.ok) {
+        await loadMatchSuggestions();
+        showNotification('تم تحديث التصويت');
+      } else {
+        showNotification('فشل تسجيل التصويت', 'error');
+      }
+      btn.disabled = false;
+    });
+
+    container.appendChild(el);
+  });
+}
+
+/* فتح/إغلاق مودال الاقتراح */
+document.getElementById('addSuggestionBtn').addEventListener('click', ()=> {
+  document.getElementById('suggestionModal').style.display = 'flex';
+});
+document.getElementById('cancelSuggestionBtn').addEventListener('click', ()=> {
+  document.getElementById('suggestionModal').style.display = 'none';
+});
+
+/* حفظ الاقتراح */
+document.getElementById('saveSuggestionBtn').addEventListener('click', async ()=>{
+  const date = document.getElementById('suggestionDate').value;
+  const location = document.getElementById('suggestionLocation').value.trim();
+  const notes = document.getElementById('suggestionNotes').value.trim();
+  if(!date || !location) return showNotification('الرجاء إدخال التاريخ والمكان', 'error');
+
+  const r = await callAPI('suggestMatch', { dateISO: new Date(date).toISOString(), location, notes });
+  if (r && r.ok) {
+    showNotification('تم إرسال الاقتراح');
+    document.getElementById('suggestionModal').style.display = 'none';
+    document.getElementById('suggestionDate').value = '';
+    document.getElementById('suggestionLocation').value = '';
+    document.getElementById('suggestionNotes').value = '';
+    await loadMatchSuggestions();
+  } else {
+    showNotification('فشل إرسال الاقتراح', 'error');
+  }
+});
+
+/* زر الحضور (مؤقت — سيحتاج endpoint في المستقبل) */
+document.getElementById('attendMatchBtn').addEventListener('click', async ()=>{
+  showNotification('تم تسجيل الحضور (مؤقت) — سيتم ربطه بخادم لاحقاً');
+});
+
+/* زر التحديث */
+document.getElementById('refreshBtn').addEventListener('click', loadMatchSuggestions);
+
+/* بدء التطبيق */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  showNotification('جاري تحميل بياناتك...', 'ok');
+  await loadCurrentUser();
+});
+</script>
+</body>
+</html>
