@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeamFlow — فريق الجامعة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Tajawal', sans-serif;
+    }
+    .animate-fade-in {
+      animation: fade-in 0.5s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    }
+    @keyframes fade-in {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-right {
+        animation: fade-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+    @keyframes fade-in-right {
+        0% { transform: translateX(50px); opacity: 0; }
+        100% { transform: translateX(0); opacity: 1; }
+    }
+    .animate-slide-up {
+        animation: slide-up 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+    @keyframes slide-up {
+        0% { transform: translateY(100px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+    .animate-fade-in-bubble {
+        animation: fade-in-bubble 0.3s ease-out forwards;
+    }
+    @keyframes fade-in-bubble {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-900 text-slate-300">
+  <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
